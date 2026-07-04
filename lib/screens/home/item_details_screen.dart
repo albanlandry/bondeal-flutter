@@ -17,6 +17,7 @@ class ItemDetailsScreen extends StatefulWidget {
 
 class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
   final PageController _pageController = PageController();
+  final ScrollController _scrollController = ScrollController();
   int _currentPage = 0;
   bool _isLiked = false;
 
@@ -30,7 +31,8 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
   final List<Product> _suggestedItems = [
     const Product(
       id: 's1',
-      imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&h=200&fit=crop&crop=center',
+      imageUrl:
+          'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&h=200&fit=crop&crop=center',
       title: 'Nike Air Max 270',
       location: 'Libreville Centre',
       price: '45000 FCFA',
@@ -45,7 +47,8 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
     ),
     const Product(
       id: 's2',
-      imageUrl: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=300&h=200&fit=crop&crop=center',
+      imageUrl:
+          'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=300&h=200&fit=crop&crop=center',
       title: 'iPhone 12 Pro Max',
       location: 'Akebe',
       price: '280000 FCFA',
@@ -60,7 +63,8 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
     ),
     const Product(
       id: 's3',
-      imageUrl: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=300&h=200&fit=crop&crop=center',
+      imageUrl:
+          'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=300&h=200&fit=crop&crop=center',
       title: 'Sac à dos Adidas',
       location: 'Nkembo',
       price: '25000 FCFA',
@@ -75,7 +79,8 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
     ),
     const Product(
       id: 's4',
-      imageUrl: 'https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=300&h=200&fit=crop&crop=center',
+      imageUrl:
+          'https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=300&h=200&fit=crop&crop=center',
       title: 'Macbook Air M1',
       location: 'Montagne Sainte',
       price: '450000 FCFA',
@@ -93,11 +98,34 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
   @override
   void dispose() {
     _pageController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
+  @override
+  void didUpdateWidget(covariant ItemDetailsScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.productId != widget.productId) {
+      setState(() {
+        _currentPage = 0;
+        _isLiked = false;
+      });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        if (_pageController.hasClients) {
+          _pageController.jumpToPage(0);
+        }
+        if (_scrollController.hasClients) {
+          _scrollController.jumpTo(0);
+        }
+      });
+    }
+  }
+
+  List<Product> get _detailProducts => [...mockProducts, ..._suggestedItems];
+
   Product get _product {
-    return mockProducts.firstWhere(
+    return _detailProducts.firstWhere(
       (product) => product.id == widget.productId,
       orElse: () => mockProducts.first,
     );
@@ -134,6 +162,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
         children: [
           Expanded(
             child: CustomScrollView(
+              controller: _scrollController,
               slivers: [
                 // Header
                 SliverToBoxAdapter(
@@ -159,7 +188,11 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                               shape: BoxShape.circle,
                               color: AppColors.grayLight,
                             ),
-                            child: const Icon(Icons.person, size: 24, color: AppColors.gray),
+                            child: const Icon(
+                              Icons.person,
+                              size: 24,
+                              color: AppColors.gray,
+                            ),
                           ),
                           const SizedBox(width: AppSpacing.sm),
                           Expanded(
@@ -199,7 +232,9 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       ListTile(
-                                        leading: const Icon(Icons.flag_outlined),
+                                        leading: const Icon(
+                                          Icons.flag_outlined,
+                                        ),
                                         title: const Text('Signaler'),
                                         onTap: () => Navigator.pop(ctx),
                                       ),
@@ -209,7 +244,9 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                                         onTap: () => Navigator.pop(ctx),
                                       ),
                                       ListTile(
-                                        leading: const Icon(Icons.share_outlined),
+                                        leading: const Icon(
+                                          Icons.share_outlined,
+                                        ),
                                         title: const Text('Partager'),
                                         onTap: () => Navigator.pop(ctx),
                                       ),
@@ -247,12 +284,17 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                                 placeholder: (_, _) => Container(
                                   color: Colors.grey[200],
                                   child: const Center(
-                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
                                   ),
                                 ),
                                 errorWidget: (_, _, _) => Container(
                                   color: Colors.grey[200],
-                                  child: const Icon(Icons.image_not_supported, size: 48),
+                                  child: const Icon(
+                                    Icons.image_not_supported,
+                                    size: 48,
+                                  ),
                                 ),
                               ),
                             );
@@ -302,11 +344,23 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                         // Engagement stats
                         Row(
                           children: [
-                            _StatItem(icon: Icons.favorite, count: _product.likes, color: AppColors.danger),
+                            _StatItem(
+                              icon: Icons.favorite,
+                              count: _product.likes,
+                              color: AppColors.danger,
+                            ),
                             const SizedBox(width: AppSpacing.lg),
-                            _StatItem(icon: Icons.visibility, count: _product.views, color: AppColors.gray),
+                            _StatItem(
+                              icon: Icons.visibility,
+                              count: _product.views,
+                              color: AppColors.gray,
+                            ),
                             const SizedBox(width: AppSpacing.lg),
-                            _StatItem(icon: Icons.chat_bubble, count: _product.comments, color: AppColors.gray),
+                            _StatItem(
+                              icon: Icons.chat_bubble,
+                              count: _product.comments,
+                              color: AppColors.gray,
+                            ),
                           ],
                         ),
                         const SizedBox(height: AppSpacing.lg),
@@ -379,7 +433,11 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                         const SizedBox(height: AppSpacing.sm),
                         Row(
                           children: [
-                            const Icon(Icons.place, size: 16, color: AppColors.gray),
+                            const Icon(
+                              Icons.place,
+                              size: 16,
+                              color: AppColors.gray,
+                            ),
                             const SizedBox(width: AppSpacing.xs),
                             Text(
                               _product.location,
@@ -413,7 +471,9 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                     height: 240,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md,
+                      ),
                       itemCount: _suggestedItems.length,
                       itemBuilder: (context, index) {
                         final item = _suggestedItems[index];
@@ -516,7 +576,8 @@ class _SuggestedItemCard extends StatelessWidget {
         : (text: 'Disponible', color: AppColors.success);
 
     return GestureDetector(
-      onTap: () => context.push('/item-details?id=${product.id}'),
+      onTap: () =>
+          context.push('/item-details?id=${Uri.encodeComponent(product.id)}'),
       child: Container(
         width: 160,
         margin: const EdgeInsets.only(right: AppSpacing.sm),
@@ -560,7 +621,10 @@ class _SuggestedItemCard extends StatelessWidget {
                   top: 6,
                   left: 6,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: statusConfig.color,
                       borderRadius: BorderRadius.circular(8),
@@ -698,6 +762,7 @@ class _BottomBar extends StatelessWidget {
           Expanded(
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   price,
@@ -741,10 +806,7 @@ class _BottomBar extends StatelessWidget {
             ),
             child: const Text(
               'Contacter',
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-              ),
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
             ),
           ),
         ],
@@ -757,10 +819,7 @@ class _FullscreenImageView extends StatefulWidget {
   final List<String> images;
   final int initialPage;
 
-  const _FullscreenImageView({
-    required this.images,
-    required this.initialPage,
-  });
+  const _FullscreenImageView({required this.images, required this.initialPage});
 
   @override
   State<_FullscreenImageView> createState() => _FullscreenImageViewState();
@@ -868,7 +927,10 @@ class _FullscreenImageViewState extends State<_FullscreenImageView> {
             right: 0,
             child: Center(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(12),
